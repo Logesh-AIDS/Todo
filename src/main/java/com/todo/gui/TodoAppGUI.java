@@ -1,4 +1,4 @@
-package com.todo.gui;
+/*package com.todo.gui;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import com.todo.dao.TodoAppDAO;
@@ -70,7 +70,7 @@ public class TodoAppGUI extends JFrame{
         );
 
     }
-    /*private void setupLayout(){
+    //////////////////*private void setupLayout(){
         setLayout(new BorderLayout());
 
         JPanel inputPanel = new JPanel(new GridBagLayout());
@@ -95,7 +95,7 @@ public class TodoAppGUI extends JFrame{
         inputPanel.add(completedCheckBox, gbc);
         
         add(inputPanel, BorderLayout.NORTH);
-    }*/
+    }//////////////////
     private void setupLayout() {
         setLayout(new BorderLayout());
 
@@ -173,5 +173,186 @@ public class TodoAppGUI extends JFrame{
     private void loadTodos() {
         List<Todo> todos = todoDAO.getAllTodos();
         tableModel.setRowCount(0);
+    }
+}
+*/
+package com.todo.gui;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import com.todo.dao.TodoAppDAO;
+import com.todo.model.Todo;
+
+import java.awt.*;
+import java.sql.SQLException;
+import java.util.List;
+
+public class TodoAppGUI extends JFrame {
+    private TodoAppDAO todoDAO;
+    private JTable todoTable;
+    private DefaultTableModel tableModel;
+    private JTextField titleField;
+    private JTextArea descriptionArea;
+    private JCheckBox completedCheckBox;
+    private JButton addButton, updateButton, deleteButton, refreshButton;
+    private JComboBox<String> filterComboBox;
+    private JLabel statusLabel;
+
+    public TodoAppGUI() {
+        this.todoDAO = new TodoAppDAO();
+        initializeComponents();
+        setupLayout();
+        setupEventListeners();
+        loadTodos(); // initial load
+    }
+
+    private void initializeComponents() {
+        setTitle("Todo Application");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+
+        String[] columnNames = {"ID", "Title", "Description", "Completed", "Created At", "Updated At"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make all cells non-editable
+            }
+        };
+
+        todoTable = new JTable(tableModel);
+        todoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        titleField = new JTextField(20);
+        descriptionArea = new JTextArea(3, 20);
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setWrapStyleWord(true);
+
+        completedCheckBox = new JCheckBox("Completed");
+        addButton = new JButton("Add Todo");
+        updateButton = new JButton("Update Todo");
+        deleteButton = new JButton("Delete Todo");
+        refreshButton = new JButton("Refresh");
+
+        String[] filterOptions = {"All", "Completed", "Pending"};
+        filterComboBox = new JComboBox<>(filterOptions);
+
+        statusLabel = new JLabel("Ready");
+    }
+
+    private void setupLayout() {
+        setLayout(new BorderLayout());
+
+        // Input Panel
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        inputPanel.add(new JLabel("Title:"), gbc);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        inputPanel.add(titleField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        inputPanel.add(new JLabel("Description:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(new JScrollPane(descriptionArea), gbc);
+
+        gbc.gridx = 1; gbc.gridy = 2;
+        inputPanel.add(completedCheckBox, gbc);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.add(addButton);
+        buttonPanel.add(updateButton);
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(refreshButton);
+
+        // Filter
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterPanel.add(new JLabel("Filter:"));
+        filterPanel.add(filterComboBox);
+
+        // North Panel
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(filterPanel, BorderLayout.NORTH);
+        northPanel.add(inputPanel, BorderLayout.CENTER);
+        northPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(northPanel, BorderLayout.NORTH);
+        add(new JScrollPane(todoTable), BorderLayout.CENTER);
+
+        // Status bar
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        statusPanel.add(new JLabel("Status:"));
+        statusPanel.add(statusLabel);
+        add(statusPanel, BorderLayout.SOUTH);
+    }
+
+    private void setupEventListeners() {
+        addButton.addActionListener(e -> addTodo());
+        updateButton.addActionListener(e -> updateTodo());
+        deleteButton.addActionListener(e -> deleteTodo());
+        refreshButton.addActionListener(e -> loadTodos());
+        filterComboBox.addActionListener(e -> filterTodos());
+    }
+
+    // === DB Actions ===
+    private void addTodo() {
+        // TODO: Call DAO insert method (not implemented yet)
+        statusLabel.setText("Add Todo clicked.");
+    }
+
+    private void updateTodo() {
+        statusLabel.setText("Update Todo clicked.");
+    }
+
+    private void deleteTodo() {
+        statusLabel.setText("Delete Todo clicked.");
+    }
+
+    private void filterTodos() {
+        statusLabel.setText("Filter: " + filterComboBox.getSelectedItem());
+    }
+
+    private void loadTodos() {
+        try {
+            List<Todo> todos = todoDAO.getAllTodos();
+            updateTable((todos));
+            /*tableModel.setRowCount(0); // clear table
+
+            for (Todo todo : todos) {
+                tableModel.addRow(new Object[]{
+                        todo.getId(),
+                        todo.getTitle(),
+                        todo.getDescription(),
+                        todo.isCompleted(),
+                        todo.getCreated_at(),
+                        todo.getUpdated_at()
+                });*/
+            //}
+            //statusLabel.setText("Loaded " + todos.size() + " todos.");
+        } 
+        catch (SQLException ex) {
+            /*ex.printStackTrace();
+            statusLabel.setText("Error loading todos: " + ex.getMessage());*/
+            JOptionPane.showMessageDialog(this, "Error loading todos: " + ex.getMessage(), " Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private void updateTable(List<Todo> todos){
+        tableModel.setRowCount(0);
+        for(Todo todo : todos){
+            Object[] row = {
+                todo.getId(),
+                todo.getTitle(),
+                todo.getDescription(),
+                todo.isCompleted(),
+                todo.getCreated_at(),
+                todo.getUpdated_at()
+            };
+            tableModel.addRow(row);
+        }
     }
 }
